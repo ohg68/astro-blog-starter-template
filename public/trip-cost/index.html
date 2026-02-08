@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Cost & Efficiency Analytics</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> Trip Cost & Efficiency Analytics</h1>
+            <p class="tagline">Compara costos, eficiencia y huella de carbono para viajes multimodales. Toma decisiones inteligentes para tu próximo viaje.</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title"><i class="fas fa-calculator"></i> Datos del Viaje</h2>
+
+                <div class="input-group">
+                    <h3><i class="fas fa-map-marker-alt"></i> Ruta</h3>
+                    <div class="input-row">
+                        <div>
+                            <label for="origin">Origen</label>
+                            <input type="text" id="origin" placeholder="Ej: Madrid, España" value="Madrid, España">
+                        </div>
+                        <div>
+                            <label for="destination">Destino</label>
+                            <input type="text" id="destination" placeholder="Ej: Barcelona, España" value="Barcelona, España">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label for="people">Número de Personas</label>
+                            <input type="number" id="people" min="1" max="50" value="2">
+                        </div>
+                        <div>
+                            <label for="nights">Noches de Alojamiento</label>
+                            <input type="number" id="nights" min="0" value="3">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <h3><i class="fas fa-car icon-car"></i> Opción Coche</h3>
+                    <div class="input-row">
+                        <div>
+                            <label for="fuelConsumption">Consumo (L/100km)</label>
+                            <input type="number" id="fuelConsumption" step="0.1" min="0.1" value="6.5">
+                        </div>
+                        <div>
+                            <label for="fuelPrice">Precio Combustible (€/L)</label>
+                            <input type="number" id="fuelPrice" step="0.01" min="0.01" value="1.55">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label for="tolls">Peajes (€)</label>
+                            <input type="number" id="tolls" step="0.01" min="0" value="25">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <h3><i class="fas fa-ticket-alt"></i> Transporte Público</h3>
+                    <p class="source-note">Deja en 0 para usar estimaciones automáticas basadas en la distancia (datos promedio Renfe/ALSA/aerolíneas 2024).</p>
+                    <div class="input-row">
+                        <div>
+                            <label for="planePrice">Avión (€ por persona)</label>
+                            <input type="number" id="planePrice" step="0.01" min="0" value="0" placeholder="0 = estimar automáticamente">
+                        </div>
+                        <div>
+                            <label for="trainPrice">Tren (€ por persona)</label>
+                            <input type="number" id="trainPrice" step="0.01" min="0" value="0" placeholder="0 = estimar automáticamente">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label for="busPrice">Autobús (€ por persona)</label>
+                            <input type="number" id="busPrice" step="0.01" min="0" value="0" placeholder="0 = estimar automáticamente">
+                        </div>
+                        <div>
+                            <label for="transfers">Traslados Aeropuerto/Estación (€)</label>
+                            <input type="number" id="transfers" step="0.01" min="0" value="20">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <h3><i class="fas fa-hotel"></i> Alojamiento</h3>
+                    <div class="input-row">
+                        <div>
+                            <label for="hotelPrice">Precio por Noche (€)</label>
+                            <input type="number" id="hotelPrice" step="0.01" min="0" value="80">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calculateBtn" class="calculate-btn">
+                    <i class="fas fa-chart-bar"></i> Calcular y Comparar
+                </button>
+            </div>
+
+            <div class="map-section">
+                <h2 class="section-title"><i class="fas fa-map"></i> Mapa de Ruta</h2>
+                <div class="map-container">
+                    <div id="map"></div>
+                    <div class="map-loading hidden" id="mapLoading">
+                        <div>
+                            <i class="fas fa-spinner fa-spin"></i> Cargando mapa...
+                        </div>
+                    </div>
+                </div>
+                <div class="real-cost">
+                    <h3><i class="fas fa-coins"></i> Costo Real del Viaje</h3>
+                    <p id="realCostDisplay">Incluye alojamiento: €0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="comparison-cards">
+                <h2 class="section-title"><i class="fas fa-balance-scale"></i> Comparativa de Costos</h2>
+                <div class="cards-container">
+                    <!-- Car Card -->
+                    <div class="transport-card car-card">
+                        <div class="card-header">
+                            <div class="transport-name">
+                                <i class="fas fa-car transport-icon icon-car"></i> Coche
+                            </div>
+                            <div class="efficiency-badge" id="carBadge">MÁS EFICIENTE</div>
+                        </div>
+                        <div class="cost-display" id="carCost">€0.00</div>
+                        <div class="cost-per-km" id="carCostPerKm">€0.00 por persona/km</div>
+                        <div class="card-details">
+                            <div><i class="fas fa-gas-pump"></i> Combustible: <span id="carFuel">€0.00</span></div>
+                            <div><i class="fas fa-road"></i> Peajes: <span id="carTolls">€0.00</span></div>
+                            <div><i class="fas fa-tools"></i> Mantenimiento: <span id="carMaintenance">€0.00</span></div>
+                            <div><i class="fas fa-road"></i> Distancia: <span id="carDistance">0 km</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Plane Card -->
+                    <div class="transport-card plane-card">
+                        <div class="card-header">
+                            <div class="transport-name">
+                                <i class="fas fa-plane transport-icon icon-plane"></i> Avión
+                            </div>
+                            <div class="efficiency-badge" id="planeBadge">MÁS EFICIENTE</div>
+                        </div>
+                        <div class="cost-display" id="planeCost">€0.00</div>
+                        <div class="price-range" id="planePriceRange"></div>
+                        <div class="cost-per-km" id="planeCostPerKm">€0.00 por persona/km</div>
+                        <div class="card-details">
+                            <div><i class="fas fa-ticket-alt"></i> Billetes: <span id="planeTickets">€0.00</span></div>
+                            <div><i class="fas fa-taxi"></i> Traslados: <span id="planeTransfers">€0.00</span></div>
+                            <div><i class="fas fa-map-marked-alt"></i> Distancia: <span id="planeDistance">0 km</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Train Card -->
+                    <div class="transport-card train-card">
+                        <div class="card-header">
+                            <div class="transport-name">
+                                <i class="fas fa-train transport-icon icon-train"></i> Tren
+                            </div>
+                            <div class="efficiency-badge" id="trainBadge">MÁS EFICIENTE</div>
+                        </div>
+                        <div class="cost-display" id="trainCost">€0.00</div>
+                        <div class="price-range" id="trainPriceRange"></div>
+                        <div class="cost-per-km" id="trainCostPerKm">€0.00 por persona/km</div>
+                        <div class="card-details">
+                            <div><i class="fas fa-ticket-alt"></i> Billetes: <span id="trainTickets">€0.00</span></div>
+                            <div><i class="fas fa-taxi"></i> Traslados: <span id="trainTransfers">€0.00</span></div>
+                            <div><i class="fas fa-map-marked-alt"></i> Distancia: <span id="trainDistance">0 km</span></div>
+                            <div class="source-note">Estimación basada en datos promedio Renfe (AVE/Media Distancia)</div>
+                        </div>
+                    </div>
+
+                    <!-- Bus Card -->
+                    <div class="transport-card bus-card">
+                        <div class="card-header">
+                            <div class="transport-name">
+                                <i class="fas fa-bus transport-icon icon-bus"></i> Autobús
+                            </div>
+                            <div class="efficiency-badge" id="busBadge">MÁS EFICIENTE</div>
+                        </div>
+                        <div class="cost-display" id="busCost">€0.00</div>
+                        <div class="price-range" id="busPriceRange"></div>
+                        <div class="cost-per-km" id="busCostPerKm">€0.00 por persona/km</div>
+                        <div class="card-details">
+                            <div><i class="fas fa-ticket-alt"></i> Billetes: <span id="busTickets">€0.00</span></div>
+                            <div><i class="fas fa-taxi"></i> Traslados: <span id="busTransfers">€0.00</span></div>
+                            <div><i class="fas fa-map-marked-alt"></i> Distancia: <span id="busDistance">0 km</span></div>
+                            <div class="source-note">Estimación basada en datos promedio ALSA/Avanza</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="emissions-section">
+                    <h3 class="section-title" style="grid-column: 1 / -1; margin-bottom: 0;">
+                        <i class="fas fa-leaf"></i> Huella de Carbono (CO₂)
+                    </h3>
+                    <div class="emission-item">
+                        <div><i class="fas fa-car icon-car"></i> Coche</div>
+                        <div class="emission-value car-emission" id="carEmission">0 kg</div>
+                        <div class="emission-per-person" id="carEmissionPerPerson"></div>
+                        <div>CO₂ total vehículo</div>
+                    </div>
+                    <div class="emission-item">
+                        <div><i class="fas fa-plane icon-plane"></i> Avión</div>
+                        <div class="emission-value plane-emission" id="planeEmission">0 kg</div>
+                        <div class="emission-per-person" id="planeEmissionPerPerson"></div>
+                        <div>CO₂ total</div>
+                    </div>
+                    <div class="emission-item">
+                        <div><i class="fas fa-train icon-train"></i> Tren</div>
+                        <div class="emission-value train-emission" id="trainEmission">0 kg</div>
+                        <div class="emission-per-person" id="trainEmissionPerPerson"></div>
+                        <div>CO₂ total</div>
+                    </div>
+                    <div class="emission-item">
+                        <div><i class="fas fa-bus icon-bus"></i> Autobús</div>
+                        <div class="emission-value bus-emission" id="busEmission">0 kg</div>
+                        <div class="emission-per-person" id="busEmissionPerPerson"></div>
+                        <div>CO₂ total</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <h2 class="section-title"><i class="fas fa-chart-bar"></i> Análisis Visual</h2>
+                <div class="chart-container">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <h2 class="section-title"><i class="fas fa-file-pdf"></i> Exportar Itinerario de Gastos</h2>
+            <div class="export-form">
+                <div>
+                    <label for="userName">Nombre para el informe</label>
+                    <input type="text" id="userName" placeholder="Tu nombre">
+                </div>
+                <div>
+                    <label for="userEmail">Email (opcional)</label>
+                    <input type="email" id="userEmail" placeholder="tu@email.com">
+                </div>
+            </div>
+            <button id="exportBtn" class="pdf-btn">
+                <i class="fas fa-download"></i> Generar PDF con Presupuesto
+            </button>
+        </div>
+
+        <footer>
+            <p>Trip Cost & Efficiency Analytics | Aplicación de logística de viajes</p>
+            <p>Los cálculos son estimados. Precios de tren/bus basados en promedios de distancia (Renfe/ALSA 2024). Consulta operadores para precios exactos.</p>
+            <p>Emisiones CO₂: factores de la Agencia Europea de Medio Ambiente (EEA). Distancias: OSRM / Haversine.</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
