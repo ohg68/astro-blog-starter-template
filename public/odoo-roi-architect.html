@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo ROI Architect | Auditoría de Ineficiencia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #05070a;
+            --card-bg: #0f172a;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --danger: #ff4d4d;
+            --success: #10b981;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 50px; border-bottom: 1px solid var(--border); padding-bottom: 30px; }
+
+        .logo-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.03);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
+        .gradient-text { background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 30px; position: relative; overflow: hidden; height: 100%; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); }
+
+        h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 500; }
+
+        .input-wrapper { position: relative; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); transition: 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+
+        input, select { width: 100%; background: transparent; border: none; padding: 15px 15px 15px 45px; color: white; font-size: 1rem; outline: none; }
+        .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--accent-blue); }
+
+        .impact-box { background: rgba(255, 77, 77, 0.05); border: 1px dashed var(--danger); border-radius: 15px; padding: 25px; text-align: center; margin-top: 20px; }
+        .kpi-value { font-size: 3rem; font-weight: 900; color: var(--danger); margin: 10px 0; text-shadow: 0 0 20px rgba(255, 77, 77, 0.3); }
+
+        .chart-wrapper { height: 300px; margin-top: 20px; }
+
+        /* Formulario Lead Magnet */
+        .lead-capture { margin-top: 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid var(--accent-purple); }
+        .btn-cta { width: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; text-transform: uppercase; }
+        .btn-cta:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+
+        /* Pantalla de Carga */
+        #loader-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 7, 10, 0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column;
+        }
+        .scanner { width: 300px; height: 2px; background: var(--accent-blue); position: relative; animation: scan 2s infinite; box-shadow: 0 0 15px var(--accent-blue); }
+        @keyframes scan { 0% { top: 0; } 50% { top: 20px; } 100% { top: 0; } }
+
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div id="loader-overlay">
+    <div class="scanner"></div>
+    <p style="margin-top: 30px; font-family: monospace; color: var(--accent-blue)" id="loader-text">INICIANDO AUDITORÍA TÉCNICA...</p>
+</div>
+
+<div class="container">
+    <header>
+        <div class="logo-box">
+            <i class="fas fa-microchip" style="color: var(--accent-blue)"></i>
+            <span style="font-weight: 600; letter-spacing: 1px">ROI TECH STRATEGIST</span>
+        </div>
+        <h1>Auditor de <span class="gradient-text">Fuga de Capital</span></h1>
+        <p style="color: var(--text-dim)">Descubre cuánto te cuesta mantener procesos manuales frente a una arquitectura Odoo Custom.</p>
+    </header>
+
+    <div class="main-grid">
+        <div class="card">
+            <h2><i class="fas fa-sliders-h"></i> Parámetros de Operación</h2>
+            <div class="input-group">
+                <label>Nº de Empleados Administrativos</label>
+                <div class="input-wrapper"><i class="fas fa-users icon"></i><input type="number" id="employees" value="3" oninput="calculate()"></div>
+            </div>
+            <div class="input-group">
+                <label>Horas/Semana perdidas en copia-pega</label>
+                <div class="input-wrapper"><i class="fas fa-clock icon"></i><input type="number" id="hours" value="20" oninput="calculate()"></div>
+            </div>
+            <div class="input-group">
+                <label>Sistemas Desconectados</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-layer-group icon"></i>
+                    <select id="complexity" onchange="calculate()">
+                        <option value="1">Baja (2-3 apps)</option>
+                        <option value="1.2" selected>Media (4-5 apps)</option>
+                        <option value="1.5">Alta (Ecosistema fragmentado)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="impact-box">
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--danger)">PÉRDIDA ANUAL ESTIMADA</span>
+                <div class="kpi-value" id="loss-display">24.000€</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-chart-line"></i> Recuperación de Inversión</h2>
+            <div class="chart-wrapper"><canvas id="roiChart"></canvas></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
+                    <span style="font-size: 0.7rem; color: var(--text-dim)">PAYBACK</span>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: var(--success)" id="payback-text">4.2 Meses</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
+                    <span style="font-size: 0.7rem; color: var(--text-dim)">ROI AÑO 1</span>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-blue)" id="roi-text">320%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2><i class="fas fa-code-branch"></i> Manual vs. Automatizado (Python)</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
+                <div style="background: rgba(255, 77, 77, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.2);">
+                    <h3 style="color: var(--danger); font-size: 0.8rem; margin-bottom: 10px;">PROCESO MANUAL</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-dim)">Descarga, limpieza de Excel, entrada manual a ERP, validación visual. <br><strong>15-20 min/pedido</strong></p>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <h3 style="color: var(--success); font-size: 0.8rem; margin-bottom: 10px;">PROCESO ODOO</h3>
+                    <pre style="font-family: monospace; font-size: 0.7rem; color: #a5d6ff;">@api.model
+def sync_data(self):
+    return self.api_connector.process() # < 1 seg</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="card lead-capture" id="form-section" style="grid-column: 1 / -1;">
+            <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: white; justify-content: center; margin-bottom: 10px;">Obtén tu Roadmap Técnico Personalizado</h2>
+                <p style="color: var(--text-dim); margin-bottom: 25px;">Analizaremos tu caso para reducir tus <span id="loss-summary" style="color: var(--danger); font-weight: 700;">24.000€</span> de pérdida a cero.</p>
+                <form id="leadForm" onsubmit="processLead(event)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <input type="text" placeholder="Nombre" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                        <input type="email" id="email" placeholder="Email Corporativo" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                    </div>
+                    <button type="submit" class="btn-cta">Generar Mi Auditoría Técnica PDF</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let roiChart;
+    function calculate() {
+        const emp = document.getElementById('employees').value;
+        const hours = document.getElementById('hours').value;
+        const complexity = document.getElementById('complexity').value;
+        const annualLoss = (hours * 52 * 25) * complexity;
+        const save = annualLoss * 0.9;
+        const inv = 15000;
+
+        const lossFormatted = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(annualLoss);
+        document.getElementById('loss-display').innerText = lossFormatted;
+        document.getElementById('loss-summary').innerText = lossFormatted;
+        document.getElementById('payback-text').innerText = `${(inv / (save / 12)).toFixed(1)} Meses`;
+        document.getElementById('roi-text').innerText = `${(((save - inv) / inv) * 100).toFixed(0)}%`;
+        updateChart(inv, save);
+    }
+
+    function updateChart(inv, save) {
+        const ctx = document.getElementById('roiChart').getContext('2d');
+        if (roiChart) roiChart.destroy();
+        roiChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Inicio', 'Año 1', 'Año 2', 'Año 3'],
+                datasets: [{ data: [-inv, save-inv, save*2-inv, save*3-inv], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+        });
+    }
+
+    function processLead(e) {
+        e.preventDefault();
+        const overlay = document.getElementById('loader-overlay');
+        const text = document.getElementById('loader-text');
+        overlay.style.display = 'flex';
+
+        const steps = ["ANALIZANDO FLUJO DE DATOS...", "DETECTANDO CUELLOS DE BOTELLA...", "CALCULANDO ROI DE AUTOMATIZACIÓN...", "GENERANDO ROADMAP PDF..."];
+        let i = 0;
+        const interval = setInterval(() => {
+            if(i < steps.length) text.innerText = steps[i++];
+            else {
+                clearInterval(interval);
+                alert("¡Auditoría generada con éxito! Revisa tu bandeja de entrada.");
+                overlay.style.display = 'none';
+            }
+        }, 1200);
+    }
+    window.onload = calculate;
+</script>
+</body>
+</html>
