@@ -210,6 +210,47 @@ def sync_data(self):
             </div>
         </div>
 
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2><i class="fas fa-calculator"></i> Metodología de Cálculo</h2>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 20px;">Nuestras estimaciones se basan en métricas operativas reales del sector. Así es como calculamos cada indicador:</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(59,130,246,0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.15);">
+                    <h3 style="color: var(--accent-blue); font-size: 0.8rem; margin-bottom: 12px;"><i class="fas fa-coins" style="margin-right: 6px;"></i>PÉRDIDA ANUAL</h3>
+                    <p style="font-size: 0.82rem; color: var(--text-dim); line-height: 1.6;">
+                        <strong style="color: var(--text-main);">Fórmula:</strong> Horas/semana &times; 52 semanas &times; Costo/hora del sector &times; Factor de complejidad<br><br>
+                        El <strong>costo por hora</strong> varía según el sector: <span id="method-cost" style="color: var(--accent-blue); font-weight: 600;">22€/h en Logística</span>. Estos valores reflejan el costo promedio del tiempo administrativo incluyendo salario, cargas sociales y costos indirectos.
+                    </p>
+                </div>
+                <div style="background: rgba(139,92,246,0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(139,92,246,0.15);">
+                    <h3 style="color: var(--accent-purple); font-size: 0.8rem; margin-bottom: 12px;"><i class="fas fa-chart-pie" style="margin-right: 6px;"></i>ROI Y PAYBACK</h3>
+                    <p style="font-size: 0.82rem; color: var(--text-dim); line-height: 1.6;">
+                        <strong style="color: var(--text-main);">Ahorro estimado:</strong> 90% de la pérdida anual eliminada con automatización Odoo.<br><br>
+                        <strong style="color: var(--text-main);">Payback:</strong> Inversión &divide; (Ahorro anual &divide; 12 meses).<br>
+                        <strong style="color: var(--text-main);">ROI Año 1:</strong> ((Ahorro − Inversión) &divide; Inversión) &times; 100%.
+                    </p>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                <div style="background: rgba(16,185,129,0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.15);">
+                    <h3 style="color: var(--success); font-size: 0.8rem; margin-bottom: 12px;"><i class="fas fa-layer-group" style="margin-right: 6px;"></i>FACTOR DE COMPLEJIDAD</h3>
+                    <p style="font-size: 0.82rem; color: var(--text-dim); line-height: 1.6;">
+                        <strong style="color: var(--text-main);">Baja (×1.0):</strong> 2-3 aplicaciones desconectadas.<br>
+                        <strong style="color: var(--text-main);">Media (×1.2):</strong> 4-5 aplicaciones, datos duplicados.<br>
+                        <strong style="color: var(--text-main);">Alta (×1.5):</strong> Ecosistema fragmentado, reentrada constante de datos.
+                    </p>
+                </div>
+                <div style="background: rgba(239,68,68,0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(239,68,68,0.15);">
+                    <h3 style="color: var(--danger); font-size: 0.8rem; margin-bottom: 12px;"><i class="fas fa-money-bill-wave" style="margin-right: 6px;"></i>INVERSIÓN ODOO POR SECTOR</h3>
+                    <p style="font-size: 0.82rem; color: var(--text-dim); line-height: 1.6;">
+                        <strong style="color: var(--text-main);">Logística:</strong> 18.000€ — Integración con transportistas y facturación.<br>
+                        <strong style="color: var(--text-main);">Clínica Dental:</strong> 12.000€ — Agenda, historial clínico y cobros.<br>
+                        <strong style="color: var(--text-main);">Construcción:</strong> 22.000€ — Presupuestos, compras y control de obra.<br>
+                        <strong style="color: var(--text-main);">Avícola:</strong> 16.000€ — Producción, trazabilidad y stock.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="card lead-capture" id="form-section" style="grid-column: 1 / -1;">
             <div style="text-align: center; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: var(--text-main); justify-content: center; margin-bottom: 10px;">Obtén tu Roadmap Técnico Personalizado</h2>
@@ -350,6 +391,9 @@ def daily_production(self):
 
         // Update sector name in lead form
         document.getElementById('sector-summary').innerText = data.name;
+
+        // Update methodology cost/hour
+        document.getElementById('method-cost').innerText = `${data.costPerHour}€/h en ${data.name}`;
 
         calculate();
     }
