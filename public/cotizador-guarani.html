@@ -283,16 +283,8 @@
         try {
             const res = await fetch('https://api.exchangerate-api.com/v4/latest/PYG');
             const data = await res.json();
-            rates = {
-                USD: 1 / data.rates.USD,
-                ARS: data.rates.ARS,
-                BRL: 1 / data.rates.BRL,
-                EUR: 1 / data.rates.EUR
-            };
-            // rates from API: PYG per 1 unit of foreign currency
-            // We need: how many PYG = 1 foreign unit
-            // API gives PYG as base, rates.USD = how many USD per 1 PYG
-            // So 1 USD = 1/rates.USD PYG
+            // API base = PYG, so data.rates.USD = USD per 1 PYG
+            // We need PYG per 1 foreign unit = 1 / data.rates.XXX
             rates = {
                 USD: 1 / data.rates.USD,
                 ARS: 1 / data.rates.ARS,
@@ -335,7 +327,7 @@
 
     function formatCurrency(value, currency) {
         const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-        if (currency === 'ARS') options.maximumFractionDigits = 0;
+        if (currency === 'ARS') { options.minimumFractionDigits = 0; options.maximumFractionDigits = 0; }
         const symbols = { USD: '$ ', ARS: '$ ', BRL: 'R$ ', EUR: '€ ' };
         return symbols[currency] + new Intl.NumberFormat('es-PY', options).format(value);
     }
