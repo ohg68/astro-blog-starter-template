@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#047857">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="cotizador-real-manifest.json">
+    <title>Cotizador Real</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 15px;
+        }
+        .app-header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .app-header p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .flag-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .input-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .input-field {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 14px;
+            padding: 15px;
+            transition: 0.3s;
+        }
+        .input-field:focus-within {
+            border-color: #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+        .input-field span {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-right: 10px;
+            opacity: 0.9;
+        }
+        .input-field input {
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 100%;
+        }
+        .input-field input::placeholder { color: rgba(255,255,255,0.4); }
+
+        .results-container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .currency-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .currency-card:active {
+            transform: scale(0.98);
+        }
+
+        .currency-flag {
+            font-size: 2.2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .currency-info { flex: 1; }
+        .currency-name {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .currency-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 2px;
+        }
+        .currency-rate {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .update-bar {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            max-width: 420px;
+        }
+        .update-bar p {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+        .btn-update {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.3s;
+        }
+        .btn-update:active { background: rgba(255,255,255,0.35); }
+
+        .loading-dot {
+            display: inline-block;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .install-banner {
+            display: none;
+            background: rgba(251,191,36,0.15);
+            border: 1px solid rgba(251,191,36,0.4);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        .install-banner button {
+            background: #fbbf24;
+            color: #1e293b;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-header">
+    <div class="flag-row">
+        <span>🇧🇷</span>
+    </div>
+    <h1>Cotizador Real</h1>
+    <p>Conversão em tempo real</p>
+</div>
+
+<div id="install-banner" class="install-banner">
+    <p><i class="fas fa-download"></i> Instalar como app no celular</p>
+    <button onclick="installApp()">Instalar App</button>
+</div>
+
+<div class="input-card">
+    <label class="input-label">Valor em Reais (BRL)</label>
+    <div class="input-field">
+        <span>R$</span>
+        <input type="number" id="amount" placeholder="0" inputmode="numeric" oninput="convert()">
+    </div>
+</div>
+
+<div class="results-container">
+    <div class="currency-card">
+        <div class="currency-flag">🇵🇾</div>
+        <div class="currency-info">
+            <div class="currency-name">Guaraní Paraguayo (PYG)</div>
+            <div class="currency-value" id="pyg-value">₲ 0</div>
+            <div class="currency-rate" id="pyg-rate">Carregando...</div>
+        </div>
+    </div>
+
+    <div class="currency-card">
+        <div class="currency-flag">🇦🇷</div>
+        <div class="currency-info">
+            <div class="currency-name">Peso Argentino (ARS)</div>
+            <div class="currency-value" id="ars-value">$ 0</div>
+            <div class="currency-rate" id="ars-rate">Carregando...</div>
+        </div>
+    </div>
+
+    <div class="currency-card">
+        <div class="currency-flag">🇺🇸</div>
+        <div class="currency-info">
+            <div class="currency-name">Dólar Americano (USD)</div>
+            <div class="currency-value" id="usd-value">$ 0.00</div>
+            <div class="currency-rate" id="usd-rate">Carregando...</div>
+        </div>
+    </div>
+
+    <div class="currency-card">
+        <div class="currency-flag">🇪🇺</div>
+        <div class="currency-info">
+            <div class="currency-name">Euro (EUR)</div>
+            <div class="currency-value" id="eur-value">€ 0.00</div>
+            <div class="currency-rate" id="eur-rate">Carregando...</div>
+        </div>
+    </div>
+</div>
+
+<div class="update-bar">
+    <p id="last-update">Última atualização: --</p>
+    <button class="btn-update" onclick="fetchRates()"><i class="fas fa-sync-alt"></i> Atualizar Cotações</button>
+</div>
+
+<script>
+    // rates = cuántas unidades de cada moneda vale 1 BRL
+    let rates = { PYG: 1340, ARS: 208, USD: 0.173, EUR: 0.159 };
+
+    async function fetchRates() {
+        document.getElementById('last-update').innerHTML = '<span class="loading-dot">Atualizando cotações...</span>';
+        try {
+            var res = await fetch('https://api.exchangerate-api.com/v4/latest/BRL');
+            if (!res.ok) throw new Error('API error');
+            var data = await res.json();
+
+            rates = {
+                PYG: data.rates.PYG,
+                ARS: data.rates.ARS,
+                USD: data.rates.USD,
+                EUR: data.rates.EUR
+            };
+
+            localStorage.setItem('brl_rates_v1', JSON.stringify(rates));
+            localStorage.setItem('brl_rates_v1_date', new Date().toISOString());
+            updateRateLabels();
+            convert();
+            var now = new Date().toLocaleString('pt-BR');
+            document.getElementById('last-update').textContent = 'Atualizado: ' + now;
+        } catch (e) {
+            var cached = localStorage.getItem('brl_rates_v1');
+            if (cached) {
+                rates = JSON.parse(cached);
+                var cachedDate = localStorage.getItem('brl_rates_v1_date');
+                var dateStr = cachedDate ? new Date(cachedDate).toLocaleString('pt-BR') : 'cache';
+                document.getElementById('last-update').textContent = 'Cache: ' + dateStr + ' (sem conexão)';
+            } else {
+                document.getElementById('last-update').textContent = 'Cotações de referência (sem conexão)';
+            }
+            updateRateLabels();
+            convert();
+        }
+    }
+
+    function updateRateLabels() {
+        document.getElementById('pyg-rate').textContent = '1 BRL = ' + fmtInt(rates.PYG) + ' ₲';
+        document.getElementById('ars-rate').textContent = '1 BRL = ' + fmt(rates.ARS) + ' ARS';
+        document.getElementById('usd-rate').textContent = '1 BRL = ' + fmt4(rates.USD) + ' USD';
+        document.getElementById('eur-rate').textContent = '1 BRL = ' + fmt4(rates.EUR) + ' EUR';
+    }
+
+    function convert() {
+        var brl = parseFloat(document.getElementById('amount').value) || 0;
+
+        document.getElementById('pyg-value').textContent = '₲ ' + fmtInt(brl * rates.PYG);
+        document.getElementById('ars-value').textContent = '$ ' + fmtInt(brl * rates.ARS);
+        document.getElementById('usd-value').textContent = '$ ' + fmt2(brl * rates.USD);
+        document.getElementById('eur-value').textContent = '€ ' + fmt2(brl * rates.EUR);
+    }
+
+    function fmt(v) {
+        return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(v);
+    }
+    function fmt2(v) {
+        return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+    }
+    function fmt4(v) {
+        return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(v);
+    }
+    function fmtInt(v) {
+        return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+    }
+
+    // PWA Install
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-banner').style.display = 'block';
+    });
+
+    function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function() {
+                document.getElementById('install-banner').style.display = 'none';
+                deferredPrompt = null;
+            });
+        }
+    }
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('cotizador-real-sw.js').catch(function() {});
+    }
+
+    // Init
+    fetchRates();
+</script>
+</body>
+</html>
