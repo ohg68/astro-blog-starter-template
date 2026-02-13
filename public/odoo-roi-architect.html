@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Odoo ROI Architect | Auditoría de Ineficiencia</title>
+    <title>Odoo ROI Architect | Auditoría de Ineficiencia por Sector</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -48,6 +48,23 @@
         h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
         .gradient-text { background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
+        /* Sector Selector */
+        .sector-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px; }
+        .sector-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-dim);
+        }
+        .sector-btn:hover { border-color: var(--accent-blue); transform: translateY(-3px); }
+        .sector-btn.active { border-color: var(--accent-purple); background: rgba(139, 92, 246, 0.1); color: var(--text-main); }
+        .sector-btn i { font-size: 2rem; display: block; margin-bottom: 10px; }
+        .sector-btn span { font-size: 0.85rem; font-weight: 600; }
+
         .main-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
 
         .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 30px; position: relative; overflow: hidden; height: 100%; }
@@ -62,12 +79,18 @@
         .input-wrapper:focus-within { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
 
         input, select { width: 100%; background: transparent; border: none; padding: 15px 15px 15px 45px; color: white; font-size: 1rem; outline: none; }
+        select option { background: #1e293b; color: white; }
         .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--accent-blue); }
 
         .impact-box { background: rgba(255, 77, 77, 0.05); border: 1px dashed var(--danger); border-radius: 15px; padding: 25px; text-align: center; margin-top: 20px; }
         .kpi-value { font-size: 3rem; font-weight: 900; color: var(--danger); margin: 10px 0; text-shadow: 0 0 20px rgba(255, 77, 77, 0.3); }
 
         .chart-wrapper { height: 300px; margin-top: 20px; }
+
+        /* Sector pain points */
+        .pain-points { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .pain-item { background: rgba(255, 77, 77, 0.05); border: 1px solid rgba(255, 77, 77, 0.15); border-radius: 10px; padding: 12px; font-size: 0.8rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+        .pain-item i { color: var(--danger); font-size: 0.7rem; }
 
         /* Formulario Lead Magnet */
         .lead-capture { margin-top: 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid var(--accent-purple); }
@@ -82,7 +105,11 @@
         .scanner { width: 300px; height: 2px; background: var(--accent-blue); position: relative; animation: scan 2s infinite; box-shadow: 0 0 15px var(--accent-blue); }
         @keyframes scan { 0% { top: 0; } 50% { top: 20px; } 100% { top: 0; } }
 
-        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .sector-selector { grid-template-columns: repeat(2, 1fr); }
+            .pain-points { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -102,16 +129,36 @@
         <p style="color: var(--text-dim)">Descubre cuánto te cuesta mantener procesos manuales frente a una arquitectura Odoo Custom.</p>
     </header>
 
+    <!-- Selector de Sector -->
+    <div class="sector-selector">
+        <div class="sector-btn active" onclick="selectSector('logistica')">
+            <i class="fas fa-truck-fast"></i>
+            <span>Logística</span>
+        </div>
+        <div class="sector-btn" onclick="selectSector('dentista')">
+            <i class="fas fa-tooth"></i>
+            <span>Dentista</span>
+        </div>
+        <div class="sector-btn" onclick="selectSector('construccion')">
+            <i class="fas fa-hard-hat"></i>
+            <span>Construcción</span>
+        </div>
+        <div class="sector-btn" onclick="selectSector('avicola')">
+            <i class="fas fa-egg"></i>
+            <span>Avícola</span>
+        </div>
+    </div>
+
     <div class="main-grid">
         <div class="card">
-            <h2><i class="fas fa-sliders-h"></i> Parámetros de Operación</h2>
+            <h2><i class="fas fa-sliders-h"></i> <span id="params-title">Parámetros de Operación</span></h2>
             <div class="input-group">
-                <label>Nº de Empleados Administrativos</label>
-                <div class="input-wrapper"><i class="fas fa-users icon"></i><input type="number" id="employees" value="3" oninput="calculate()"></div>
+                <label id="label-employees">Nº de Empleados Administrativos</label>
+                <div class="input-wrapper"><i class="fas fa-users icon"></i><input type="number" id="employees" value="5" oninput="calculate()"></div>
             </div>
             <div class="input-group">
-                <label>Horas/Semana perdidas en copia-pega</label>
-                <div class="input-wrapper"><i class="fas fa-clock icon"></i><input type="number" id="hours" value="20" oninput="calculate()"></div>
+                <label id="label-hours">Horas/Semana perdidas en tareas manuales</label>
+                <div class="input-wrapper"><i class="fas fa-clock icon"></i><input type="number" id="hours" value="25" oninput="calculate()"></div>
             </div>
             <div class="input-group">
                 <label>Sistemas Desconectados</label>
@@ -126,8 +173,10 @@
             </div>
             <div class="impact-box">
                 <span style="font-size: 0.8rem; font-weight: 700; color: var(--danger)">PÉRDIDA ANUAL ESTIMADA</span>
-                <div class="kpi-value" id="loss-display">24.000€</div>
+                <div class="kpi-value" id="loss-display">39.000€</div>
             </div>
+            <!-- Pain points por sector -->
+            <div class="pain-points" id="pain-points"></div>
         </div>
 
         <div class="card">
@@ -146,17 +195,17 @@
         </div>
 
         <div class="card" style="grid-column: 1 / -1;">
-            <h2><i class="fas fa-code-branch"></i> Manual vs. Automatizado (Python)</h2>
+            <h2><i class="fas fa-code-branch"></i> <span id="comparison-title">Manual vs. Automatizado</span></h2>
             <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
                 <div style="background: rgba(255, 77, 77, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.2);">
                     <h3 style="color: var(--danger); font-size: 0.8rem; margin-bottom: 10px;">PROCESO MANUAL</h3>
-                    <p style="font-size: 0.85rem; color: var(--text-dim)">Descarga, limpieza de Excel, entrada manual a ERP, validación visual. <br><strong>15-20 min/pedido</strong></p>
+                    <p style="font-size: 0.85rem; color: var(--text-dim)" id="manual-process">Descarga, limpieza de Excel, entrada manual a ERP, validación visual. <br><strong>15-20 min/operación</strong></p>
                 </div>
                 <div style="background: rgba(16, 185, 129, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
                     <h3 style="color: var(--success); font-size: 0.8rem; margin-bottom: 10px;">PROCESO ODOO</h3>
-                    <pre style="font-family: monospace; font-size: 0.7rem; color: #a5d6ff;">@api.model
+                    <pre style="font-family: monospace; font-size: 0.7rem; color: #a5d6ff; white-space: pre-wrap;" id="odoo-process">@api.model
 def sync_data(self):
-    return self.api_connector.process() # < 1 seg</pre>
+    return self.api_connector.process() # &lt; 1 seg</pre>
                 </div>
             </div>
         </div>
@@ -164,7 +213,7 @@ def sync_data(self):
         <div class="card lead-capture" id="form-section" style="grid-column: 1 / -1;">
             <div style="text-align: center; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: white; justify-content: center; margin-bottom: 10px;">Obtén tu Roadmap Técnico Personalizado</h2>
-                <p style="color: var(--text-dim); margin-bottom: 25px;">Analizaremos tu caso para reducir tus <span id="loss-summary" style="color: var(--danger); font-weight: 700;">24.000€</span> de pérdida a cero.</p>
+                <p style="color: var(--text-dim); margin-bottom: 25px;">Analizaremos tu caso en <span id="sector-summary" style="color: var(--accent-purple); font-weight: 700;">Logística</span> para reducir tus <span id="loss-summary" style="color: var(--danger); font-weight: 700;">39.000€</span> de pérdida a cero.</p>
                 <form id="leadForm" onsubmit="processLead(event)">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <input type="text" placeholder="Nombre" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
@@ -172,20 +221,149 @@ def sync_data(self):
                     </div>
                     <button type="submit" class="btn-cta">Generar Mi Auditoría Técnica PDF</button>
                 </form>
+                <a href="https://meet.google.com/kvr-ozvm-qfb" target="_blank" rel="noopener noreferrer" class="btn-cta" style="display: block; text-align: center; text-decoration: none; margin-top: 15px; background: linear-gradient(90deg, #10b981, #3b82f6);">
+                    <i class="fas fa-video" style="margin-right: 8px;"></i>Agendar Reunión por Google Meet
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    const sectorData = {
+        logistica: {
+            name: 'Logística',
+            icon: 'fa-truck-fast',
+            employees: 5,
+            hours: 25,
+            costPerHour: 22,
+            investment: 18000,
+            labelEmployees: 'Nº de Empleados en Operaciones/Despacho',
+            labelHours: 'Horas/Semana en rastreo manual y coordinación',
+            painPoints: [
+                'Rastreo manual de envíos en múltiples plataformas',
+                'Rutas sin optimizar = combustible desperdiciado',
+                'Facturación retrasada por datos dispersos',
+                'Inventario desactualizado entre bodegas'
+            ],
+            manualProcess: 'Rastreo en Excel, llamadas a transportistas, cruce manual de guías con facturas, reportes copiados a mano.<br><strong>15-25 min/envío</strong>',
+            odooProcess: `@api.model
+def track_shipment(self):
+    route = self.env['logistics.route'].optimize()
+    self.carrier_id.api_track(self.tracking)
+    return self.auto_invoice() # < 2 seg`,
+            comparisonTitle: 'Manual vs. Automatizado (Logística)'
+        },
+        dentista: {
+            name: 'Clínica Dental',
+            icon: 'fa-tooth',
+            employees: 3,
+            hours: 15,
+            costPerHour: 28,
+            investment: 12000,
+            labelEmployees: 'Nº de Personal Administrativo en Clínica',
+            labelHours: 'Horas/Semana en agenda, historiales y cobros',
+            painPoints: [
+                'Agendas en papel o WhatsApp = citas perdidas',
+                'Historiales clínicos sin digitalizar',
+                'Cobros manuales y seguimiento de pagos',
+                'Sin recordatorios automáticos a pacientes'
+            ],
+            manualProcess: 'Agenda en papel, historial en carpetas físicas, cobro manual, llamadas de recordatorio una por una.<br><strong>10-15 min/paciente</strong>',
+            odooProcess: `@api.model
+def confirm_appointment(self):
+    self.patient_id.send_reminder()
+    self.update_clinical_record()
+    return self.generate_invoice() # < 1 seg`,
+            comparisonTitle: 'Manual vs. Automatizado (Clínica Dental)'
+        },
+        construccion: {
+            name: 'Construcción',
+            icon: 'fa-hard-hat',
+            employees: 6,
+            hours: 30,
+            costPerHour: 25,
+            investment: 22000,
+            labelEmployees: 'Nº de Personal Admin/Ingenieros de Oficina',
+            labelHours: 'Horas/Semana en presupuestos y control de obra',
+            painPoints: [
+                'Presupuestos en Excel sin control de versiones',
+                'Compras de materiales sin trazabilidad',
+                'Avance de obra reportado por WhatsApp',
+                'Nóminas y subcontratas gestionadas a mano'
+            ],
+            manualProcess: 'Presupuesto en Excel, pedidos por teléfono, avance de obra en fotos por WhatsApp, nóminas copiadas a mano.<br><strong>20-30 min/partida</strong>',
+            odooProcess: `@api.model
+def update_project(self):
+    budget = self.compute_budget_vs_real()
+    self.purchase_ids.auto_reorder()
+    return self.progress_report() # < 3 seg`,
+            comparisonTitle: 'Manual vs. Automatizado (Construcción)'
+        },
+        avicola: {
+            name: 'Avícola',
+            icon: 'fa-egg',
+            employees: 4,
+            hours: 20,
+            costPerHour: 20,
+            investment: 16000,
+            labelEmployees: 'Nº de Personal en Administración/Granja',
+            labelHours: 'Horas/Semana en registros y control de producción',
+            painPoints: [
+                'Registros de producción en cuadernos',
+                'Control de mortalidad y consumo sin digitalizar',
+                'Trazabilidad de lotes manual e incompleta',
+                'Inventario de alimento y medicamentos desactualizado'
+            ],
+            manualProcess: 'Registros en cuadernos, conteo manual de producción, control de alimento en hojas de cálculo, trazabilidad en papel.<br><strong>15-20 min/lote</strong>',
+            odooProcess: `@api.model
+def daily_production(self):
+    self.record_egg_collection()
+    self.compute_feed_consumption()
+    return self.lot_traceability() # < 2 seg`,
+            comparisonTitle: 'Manual vs. Automatizado (Avícola)'
+        }
+    };
+
+    let currentSector = 'logistica';
     let roiChart;
+
+    function selectSector(sector) {
+        currentSector = sector;
+        const data = sectorData[sector];
+
+        // Update active button
+        document.querySelectorAll('.sector-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[onclick="selectSector('${sector}')"]`).classList.add('active');
+
+        // Update form defaults
+        document.getElementById('employees').value = data.employees;
+        document.getElementById('hours').value = data.hours;
+        document.getElementById('label-employees').innerText = data.labelEmployees;
+        document.getElementById('label-hours').innerText = data.labelHours;
+
+        // Update pain points
+        const painHTML = data.painPoints.map(p => `<div class="pain-item"><i class="fas fa-exclamation-circle"></i>${p}</div>`).join('');
+        document.getElementById('pain-points').innerHTML = painHTML;
+
+        // Update comparison section
+        document.getElementById('comparison-title').innerText = data.comparisonTitle;
+        document.getElementById('manual-process').innerHTML = data.manualProcess;
+        document.getElementById('odoo-process').innerText = data.odooProcess;
+
+        // Update sector name in lead form
+        document.getElementById('sector-summary').innerText = data.name;
+
+        calculate();
+    }
+
     function calculate() {
-        const emp = document.getElementById('employees').value;
+        const data = sectorData[currentSector];
         const hours = document.getElementById('hours').value;
         const complexity = document.getElementById('complexity').value;
-        const annualLoss = (hours * 52 * 25) * complexity;
+        const annualLoss = (hours * 52 * data.costPerHour) * complexity;
         const save = annualLoss * 0.9;
-        const inv = 15000;
+        const inv = data.investment;
 
         const lossFormatted = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(annualLoss);
         document.getElementById('loss-display').innerText = lossFormatted;
@@ -214,7 +392,13 @@ def sync_data(self):
         const text = document.getElementById('loader-text');
         overlay.style.display = 'flex';
 
-        const steps = ["ANALIZANDO FLUJO DE DATOS...", "DETECTANDO CUELLOS DE BOTELLA...", "CALCULANDO ROI DE AUTOMATIZACIÓN...", "GENERANDO ROADMAP PDF..."];
+        const sectorName = sectorData[currentSector].name;
+        const steps = [
+            `ANALIZANDO FLUJO DE ${sectorName.toUpperCase()}...`,
+            "DETECTANDO CUELLOS DE BOTELLA...",
+            "CALCULANDO ROI DE AUTOMATIZACIÓN...",
+            `GENERANDO ROADMAP ${sectorName.toUpperCase()} PDF...`
+        ];
         let i = 0;
         const interval = setInterval(() => {
             if(i < steps.length) text.innerText = steps[i++];
@@ -225,7 +409,10 @@ def sync_data(self):
             }
         }, 1200);
     }
-    window.onload = calculate;
+
+    window.onload = function() {
+        selectSector('logistica');
+    };
 </script>
 </body>
 </html>
