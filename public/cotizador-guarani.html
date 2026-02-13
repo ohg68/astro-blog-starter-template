@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="cotizador-manifest.json">
+    <title>Cotizador Guaraní</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 15px;
+        }
+        .app-header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .app-header p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .flag-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .input-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .input-field {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 14px;
+            padding: 15px;
+            transition: 0.3s;
+        }
+        .input-field:focus-within {
+            border-color: #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+        .input-field span {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-right: 10px;
+            opacity: 0.9;
+        }
+        .input-field input {
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 100%;
+        }
+        .input-field input::placeholder { color: rgba(255,255,255,0.4); }
+
+        .results-container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .currency-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .currency-card:active {
+            transform: scale(0.98);
+        }
+
+        .currency-flag {
+            font-size: 2.2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .currency-info { flex: 1; }
+        .currency-name {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .currency-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 2px;
+        }
+        .currency-rate {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .update-bar {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            max-width: 420px;
+        }
+        .update-bar p {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+        .btn-update {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.3s;
+        }
+        .btn-update:active { background: rgba(255,255,255,0.35); }
+
+        .loading-dot {
+            display: inline-block;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .install-banner {
+            display: none;
+            background: rgba(251,191,36,0.15);
+            border: 1px solid rgba(251,191,36,0.4);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        .install-banner button {
+            background: #fbbf24;
+            color: #1e293b;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-header">
+    <div class="flag-row">
+        <span>🇵🇾</span>
+    </div>
+    <h1>Cotizador Guaraní</h1>
+    <p>Conversión en tiempo real</p>
+</div>
+
+<div id="install-banner" class="install-banner">
+    <p><i class="fas fa-download"></i> Instalar como app en tu celular</p>
+    <button onclick="installApp()">Instalar App</button>
+</div>
+
+<div class="input-card">
+    <label class="input-label">Monto en Guaraníes (PYG)</label>
+    <div class="input-field">
+        <span>₲</span>
+        <input type="number" id="amount" placeholder="0" inputmode="numeric" oninput="convert()">
+    </div>
+</div>
+
+<div class="results-container">
+    <div class="currency-card">
+        <div class="currency-flag">🇺🇸</div>
+        <div class="currency-info">
+            <div class="currency-name">Dólar Estadounidense (USD)</div>
+            <div class="currency-value" id="usd-value">0.00</div>
+            <div class="currency-rate" id="usd-rate">Cargando...</div>
+        </div>
+    </div>
+
+    <div class="currency-card">
+        <div class="currency-flag">🇦🇷</div>
+        <div class="currency-info">
+            <div class="currency-name">Peso Argentino (ARS)</div>
+            <div class="currency-value" id="ars-value">0.00</div>
+            <div class="currency-rate" id="ars-rate">Cargando...</div>
+        </div>
+    </div>
+
+    <div class="currency-card">
+        <div class="currency-flag">🇧🇷</div>
+        <div class="currency-info">
+            <div class="currency-name">Real Brasileño (BRL)</div>
+            <div class="currency-value" id="brl-value">0.00</div>
+            <div class="currency-rate" id="brl-rate">Cargando...</div>
+        </div>
+    </div>
+
+    <div class="currency-card">
+        <div class="currency-flag">🇪🇺</div>
+        <div class="currency-info">
+            <div class="currency-name">Euro (EUR)</div>
+            <div class="currency-value" id="eur-value">0.00</div>
+            <div class="currency-rate" id="eur-rate">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<div class="update-bar">
+    <p id="last-update">Última actualización: --</p>
+    <button class="btn-update" onclick="fetchRates()"><i class="fas fa-sync-alt"></i> Actualizar Cotizaciones</button>
+</div>
+
+<script>
+    let rates = {};
+    const FALLBACK_RATES = {
+        USD: 7350,
+        ARS: 7.2,
+        BRL: 1270,
+        EUR: 8100
+    };
+
+    async function fetchRates() {
+        document.getElementById('last-update').innerHTML = '<span class="loading-dot">Actualizando cotizaciones...</span>';
+        try {
+            const res = await fetch('https://api.exchangerate-api.com/v4/latest/PYG');
+            const data = await res.json();
+            rates = {
+                USD: 1 / data.rates.USD,
+                ARS: data.rates.ARS,
+                BRL: 1 / data.rates.BRL,
+                EUR: 1 / data.rates.EUR
+            };
+            // rates from API: PYG per 1 unit of foreign currency
+            // We need: how many PYG = 1 foreign unit
+            // API gives PYG as base, rates.USD = how many USD per 1 PYG
+            // So 1 USD = 1/rates.USD PYG
+            rates = {
+                USD: 1 / data.rates.USD,
+                ARS: 1 / data.rates.ARS,
+                BRL: 1 / data.rates.BRL,
+                EUR: 1 / data.rates.EUR
+            };
+            localStorage.setItem('pyg_rates', JSON.stringify(rates));
+            localStorage.setItem('pyg_rates_date', new Date().toISOString());
+            updateRateLabels();
+            convert();
+            const now = new Date().toLocaleString('es-PY');
+            document.getElementById('last-update').textContent = `Última actualización: ${now}`;
+        } catch (e) {
+            // Try loading from cache
+            const cached = localStorage.getItem('pyg_rates');
+            if (cached) {
+                rates = JSON.parse(cached);
+                const cachedDate = localStorage.getItem('pyg_rates_date');
+                const dateStr = cachedDate ? new Date(cachedDate).toLocaleString('es-PY') : 'cache';
+                document.getElementById('last-update').textContent = `Usando cache: ${dateStr} (sin conexión)`;
+            } else {
+                rates = FALLBACK_RATES;
+                document.getElementById('last-update').textContent = 'Usando cotizaciones de referencia (sin conexión)';
+            }
+            updateRateLabels();
+            convert();
+        }
+    }
+
+    function updateRateLabels() {
+        document.getElementById('usd-rate').textContent = `1 USD = ${formatPYG(rates.USD)} ₲`;
+        document.getElementById('ars-rate').textContent = `1 ARS = ${formatPYG(rates.ARS)} ₲`;
+        document.getElementById('brl-rate').textContent = `1 BRL = ${formatPYG(rates.BRL)} ₲`;
+        document.getElementById('eur-rate').textContent = `1 EUR = ${formatPYG(rates.EUR)} ₲`;
+    }
+
+    function formatPYG(value) {
+        return new Intl.NumberFormat('es-PY', { maximumFractionDigits: 2 }).format(value);
+    }
+
+    function formatCurrency(value, currency) {
+        const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+        if (currency === 'ARS') options.maximumFractionDigits = 0;
+        const symbols = { USD: '$ ', ARS: '$ ', BRL: 'R$ ', EUR: '€ ' };
+        return symbols[currency] + new Intl.NumberFormat('es-PY', options).format(value);
+    }
+
+    function convert() {
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        document.getElementById('usd-value').textContent = formatCurrency(amount / rates.USD, 'USD');
+        document.getElementById('ars-value').textContent = formatCurrency(amount / rates.ARS, 'ARS');
+        document.getElementById('brl-value').textContent = formatCurrency(amount / rates.BRL, 'BRL');
+        document.getElementById('eur-value').textContent = formatCurrency(amount / rates.EUR, 'EUR');
+    }
+
+    // PWA Install
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-banner').style.display = 'block';
+    });
+
+    function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                document.getElementById('install-banner').style.display = 'none';
+                deferredPrompt = null;
+            });
+        }
+    }
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('cotizador-sw.js').catch(() => {});
+    }
+
+    // Init
+    fetchRates();
+</script>
+</body>
+</html>
