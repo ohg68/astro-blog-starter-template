@@ -8,15 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-dark: #05070a;
-            --card-bg: #0f172a;
+            --bg-dark: #ffffff;
+            --card-bg: #f8fafc;
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --danger: #ff4d4d;
+            --text-main: #1e293b;
+            --text-dim: #64748b;
+            --danger: #ef4444;
             --success: #10b981;
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(0, 0, 0, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
@@ -25,8 +25,8 @@
             background-color: var(--bg-dark);
             color: var(--text-main);
             background-image:
-                radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.03) 0%, transparent 40%);
             padding: 40px 20px;
         }
 
@@ -61,7 +61,7 @@
             color: var(--text-dim);
         }
         .sector-btn:hover { border-color: var(--accent-blue); transform: translateY(-3px); }
-        .sector-btn.active { border-color: var(--accent-purple); background: rgba(139, 92, 246, 0.1); color: var(--text-main); }
+        .sector-btn.active { border-color: var(--accent-purple); background: rgba(139, 92, 246, 0.08); color: var(--text-main); }
         .sector-btn i { font-size: 2rem; display: block; margin-bottom: 10px; }
         .sector-btn span { font-size: 0.85rem; font-weight: 600; }
 
@@ -75,11 +75,11 @@
         .input-group { margin-bottom: 20px; }
         label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 500; }
 
-        .input-wrapper { position: relative; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); transition: 0.3s; }
+        .input-wrapper { position: relative; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid var(--border); transition: 0.3s; }
         .input-wrapper:focus-within { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
 
-        input, select { width: 100%; background: transparent; border: none; padding: 15px 15px 15px 45px; color: white; font-size: 1rem; outline: none; }
-        select option { background: #1e293b; color: white; }
+        input, select { width: 100%; background: transparent; border: none; padding: 15px 15px 15px 45px; color: var(--text-main); font-size: 1rem; outline: none; }
+        select option { background: #f8fafc; color: #1e293b; }
         .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--accent-blue); }
 
         .impact-box { background: rgba(255, 77, 77, 0.05); border: 1px dashed var(--danger); border-radius: 15px; padding: 25px; text-align: center; margin-top: 20px; }
@@ -93,14 +93,14 @@
         .pain-item i { color: var(--danger); font-size: 0.7rem; }
 
         /* Formulario Lead Magnet */
-        .lead-capture { margin-top: 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid var(--accent-purple); }
+        .lead-capture { margin-top: 40px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border: 1px solid var(--accent-purple); }
         .btn-cta { width: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; text-transform: uppercase; }
         .btn-cta:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
 
         /* Pantalla de Carga */
         #loader-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 7, 10, 0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column;
+            background: rgba(255, 255, 255, 0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column;
         }
         .scanner { width: 300px; height: 2px; background: var(--accent-blue); position: relative; animation: scan 2s infinite; box-shadow: 0 0 15px var(--accent-blue); }
         @keyframes scan { 0% { top: 0; } 50% { top: 20px; } 100% { top: 0; } }
@@ -116,7 +116,7 @@
 
 <div id="loader-overlay">
     <div class="scanner"></div>
-    <p style="margin-top: 30px; font-family: monospace; color: var(--accent-blue)" id="loader-text">INICIANDO AUDITORÍA TÉCNICA...</p>
+    <p style="margin-top: 30px; font-family: monospace; color: var(--accent-blue);" id="loader-text">INICIANDO AUDITORÍA TÉCNICA...</p>
 </div>
 
 <div class="container">
@@ -203,7 +203,7 @@
                 </div>
                 <div style="background: rgba(16, 185, 129, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
                     <h3 style="color: var(--success); font-size: 0.8rem; margin-bottom: 10px;">PROCESO ODOO</h3>
-                    <pre style="font-family: monospace; font-size: 0.7rem; color: #a5d6ff; white-space: pre-wrap;" id="odoo-process">@api.model
+                    <pre style="font-family: monospace; font-size: 0.7rem; color: #1e40af; white-space: pre-wrap; background: rgba(59,130,246,0.05); padding: 12px; border-radius: 8px;" id="odoo-process">@api.model
 def sync_data(self):
     return self.api_connector.process() # &lt; 1 seg</pre>
                 </div>
@@ -212,18 +212,15 @@ def sync_data(self):
 
         <div class="card lead-capture" id="form-section" style="grid-column: 1 / -1;">
             <div style="text-align: center; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: white; justify-content: center; margin-bottom: 10px;">Obtén tu Roadmap Técnico Personalizado</h2>
+                <h2 style="color: var(--text-main); justify-content: center; margin-bottom: 10px;">Obtén tu Roadmap Técnico Personalizado</h2>
                 <p style="color: var(--text-dim); margin-bottom: 25px;">Analizaremos tu caso en <span id="sector-summary" style="color: var(--accent-purple); font-weight: 700;">Logística</span> para reducir tus <span id="loss-summary" style="color: var(--danger); font-weight: 700;">39.000€</span> de pérdida a cero.</p>
                 <form id="leadForm" onsubmit="processLead(event)">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <input type="text" placeholder="Nombre" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
-                        <input type="email" id="email" placeholder="Email Corporativo" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                        <input type="text" placeholder="Nombre" required style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: #1e293b;">
+                        <input type="email" id="email" placeholder="Email Corporativo" required style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: #1e293b;">
                     </div>
                     <button type="submit" class="btn-cta">Generar Mi Auditoría Técnica PDF</button>
                 </form>
-                <a href="https://meet.google.com/kvr-ozvm-qfb" target="_blank" rel="noopener noreferrer" class="btn-cta" style="display: block; text-align: center; text-decoration: none; margin-top: 15px; background: linear-gradient(90deg, #10b981, #3b82f6);">
-                    <i class="fas fa-video" style="margin-right: 8px;"></i>Agendar Reunión por Google Meet
-                </a>
             </div>
         </div>
     </div>
