@@ -270,44 +270,44 @@
 </div>
 
 <script>
-    let rates = {};
-    const FALLBACK_RATES = {
-        USD: 7350,
-        ARS: 7.2,
-        BRL: 1270,
-        EUR: 8100
-    };
+    // rates = cuántos PYG vale 1 unidad de cada moneda
+    let rates = { USD: 7750, ARS: 6.45, BRL: 1340, EUR: 8400 };
 
     async function fetchRates() {
         document.getElementById('last-update').innerHTML = '<span class="loading-dot">Actualizando cotizaciones...</span>';
         try {
-            const res = await fetch('https://api.exchangerate-api.com/v4/latest/PYG');
+            // Usamos USD como base (más estable) y calculamos tasas cruzadas
+            const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+            if (!res.ok) throw new Error('API error');
             const data = await res.json();
-            // API base = PYG, so data.rates.USD = USD per 1 PYG
-            // We need PYG per 1 foreign unit = 1 / data.rates.XXX
+
+            const pygPerUsd = data.rates.PYG;  // ej: 7750
+            const arsPerUsd = data.rates.ARS;  // ej: 1200
+            const brlPerUsd = data.rates.BRL;  // ej: 5.78
+            const eurPerUsd = data.rates.EUR;  // ej: 0.92
+
             rates = {
-                USD: 1 / data.rates.USD,
-                ARS: 1 / data.rates.ARS,
-                BRL: 1 / data.rates.BRL,
-                EUR: 1 / data.rates.EUR
+                USD: pygPerUsd,                    // PYG por 1 USD
+                ARS: pygPerUsd / arsPerUsd,        // PYG por 1 ARS
+                BRL: pygPerUsd / brlPerUsd,        // PYG por 1 BRL
+                EUR: pygPerUsd / eurPerUsd          // PYG por 1 EUR
             };
-            localStorage.setItem('pyg_rates', JSON.stringify(rates));
-            localStorage.setItem('pyg_rates_date', new Date().toISOString());
+
+            localStorage.setItem('pyg_rates_v2', JSON.stringify(rates));
+            localStorage.setItem('pyg_rates_v2_date', new Date().toISOString());
             updateRateLabels();
             convert();
             const now = new Date().toLocaleString('es-PY');
-            document.getElementById('last-update').textContent = `Última actualización: ${now}`;
+            document.getElementById('last-update').textContent = 'Actualizado: ' + now;
         } catch (e) {
-            // Try loading from cache
-            const cached = localStorage.getItem('pyg_rates');
+            const cached = localStorage.getItem('pyg_rates_v2');
             if (cached) {
                 rates = JSON.parse(cached);
-                const cachedDate = localStorage.getItem('pyg_rates_date');
+                const cachedDate = localStorage.getItem('pyg_rates_v2_date');
                 const dateStr = cachedDate ? new Date(cachedDate).toLocaleString('es-PY') : 'cache';
-                document.getElementById('last-update').textContent = `Usando cache: ${dateStr} (sin conexión)`;
+                document.getElementById('last-update').textContent = 'Cache: ' + dateStr + ' (sin conexión)';
             } else {
-                rates = FALLBACK_RATES;
-                document.getElementById('last-update').textContent = 'Usando cotizaciones de referencia (sin conexión)';
+                document.getElementById('last-update').textContent = 'Cotizaciones de referencia (sin conexión)';
             }
             updateRateLabels();
             convert();
@@ -315,29 +315,35 @@
     }
 
     function updateRateLabels() {
-        document.getElementById('usd-rate').textContent = `1 USD = ${formatPYG(rates.USD)} ₲`;
-        document.getElementById('ars-rate').textContent = `1 ARS = ${formatPYG(rates.ARS)} ₲`;
-        document.getElementById('brl-rate').textContent = `1 BRL = ${formatPYG(rates.BRL)} ₲`;
-        document.getElementById('eur-rate').textContent = `1 EUR = ${formatPYG(rates.EUR)} ₲`;
+        document.getElementById('usd-rate').textContent = '1 USD = ' + fmt(rates.USD) + ' ₲';
+        document.getElementById('ars-rate').textContent = '1 ARS = ' + fmt(rates.ARS) + ' ₲';
+        document.getElementById('brl-rate').textContent = '1 BRL = ' + fmt(rates.BRL) + ' ₲';
+        document.getElementById('eur-rate').textContent = '1 EUR = ' + fmt(rates.EUR) + ' ₲';
     }
 
-    function formatPYG(value) {
-        return new Intl.NumberFormat('es-PY', { maximumFractionDigits: 2 }).format(value);
-    }
-
-    function formatCurrency(value, currency) {
-        const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-        if (currency === 'ARS') { options.minimumFractionDigits = 0; options.maximumFractionDigits = 0; }
-        const symbols = { USD: '$ ', ARS: '$ ', BRL: 'R$ ', EUR: '€ ' };
-        return symbols[currency] + new Intl.NumberFormat('es-PY', options).format(value);
+    function fmt(v) {
+        return new Intl.NumberFormat('es-PY', { maximumFractionDigits: 2 }).format(v);
     }
 
     function convert() {
-        const amount = parseFloat(document.getElementById('amount').value) || 0;
-        document.getElementById('usd-value').textContent = formatCurrency(amount / rates.USD, 'USD');
-        document.getElementById('ars-value').textContent = formatCurrency(amount / rates.ARS, 'ARS');
-        document.getElementById('brl-value').textContent = formatCurrency(amount / rates.BRL, 'BRL');
-        document.getElementById('eur-value').textContent = formatCurrency(amount / rates.EUR, 'EUR');
+        const pyg = parseFloat(document.getElementById('amount').value) || 0;
+        var usd = pyg / rates.USD;
+        var ars = pyg / rates.ARS;
+        var brl = pyg / rates.BRL;
+        var eur = pyg / rates.EUR;
+
+        document.getElementById('usd-value').textContent = '$ ' + fmt2(usd);
+        document.getElementById('ars-value').textContent = '$ ' + fmtInt(ars);
+        document.getElementById('brl-value').textContent = 'R$ ' + fmt2(brl);
+        document.getElementById('eur-value').textContent = '€ ' + fmt2(eur);
+    }
+
+    function fmt2(v) {
+        return new Intl.NumberFormat('es-PY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+    }
+
+    function fmtInt(v) {
+        return new Intl.NumberFormat('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
     }
 
     // PWA Install
