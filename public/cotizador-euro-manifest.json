@@ -1,0 +1,11 @@
+{
+    "name": "Cotizador Euro",
+    "short_name": "Cotizador €",
+    "description": "Convierte Euros a USD, PYG, ARS y BRL en tiempo real",
+    "start_url": "cotizador-euro.html",
+    "display": "standalone",
+    "background_color": "#1e3a8a",
+    "theme_color": "#1e3a8a",
+    "orientation": "portrait",
+    "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%231e3a8a'/%3E%3Ctext x='96' y='125' text-anchor='middle' font-size='100' font-family='Arial' font-weight='bold' fill='white'%3E€%3C/text%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
